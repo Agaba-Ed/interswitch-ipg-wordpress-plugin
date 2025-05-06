@@ -89,6 +89,3 @@ function handle_interswitch_payment_template() {
     }
 }
 add_action('template_redirect', 'handle_interswitch_payment_template');
-
-// Include response handler
-require_once plugin_dir_path(__FILE__) . 'includes/class-wc-interswitch-response-handler.php';

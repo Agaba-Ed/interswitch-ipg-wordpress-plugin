@@ -85,10 +85,17 @@ $checkout_data = get_post_meta($order_id, '_interswitch_checkout_data', true);
             checkoutForm.method = "POST";
             checkoutForm.action = "https://gatewaybackend.quickteller.co.ke/ipg-backend/api/checkout";
 
-            for (const key in jsonData) {
+            // Add status-based redirection URLs
+            const redirectData = {
+                ...jsonData,
+                successUrl: jsonData.successUrl || jsonData.redirectUrl,
+                failureUrl: jsonData.failureUrl || jsonData.redirectUrl
+            };
+
+            for (const key in redirectData) {
                 const formField = document.createElement("input");
                 formField.name = key;
-                formField.value = jsonData[key];
+                formField.value = redirectData[key];
                 checkoutForm.appendChild(formField);
             }
 
@@ -101,7 +108,7 @@ $checkout_data = get_post_meta($order_id, '_interswitch_checkout_data', true);
             setTimeout(() => {
                 checkoutForm.submit();
                 document.body.removeChild(checkoutForm);
-            }, 1000); // Small delay to show the loading state
+            }, 1000);
         }
 
         function payNow() {

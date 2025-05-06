@@ -1,4 +1,12 @@
 <?php
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
+}
+
+if (!class_exists('WC_Payment_Gateway')) {
+    return;
+}
+
 class WC_Interswitch_Gateway extends WC_Payment_Gateway {
     public function __construct() {
         $this->id = 'interswitch';
@@ -21,7 +29,6 @@ class WC_Interswitch_Gateway extends WC_Payment_Gateway {
 
         // Actions
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
-        add_action('woocommerce_api_wc_interswitch_gateway', array($this, 'check_ipg_response'));
     }
 
     public function init_form_fields() {
@@ -73,7 +80,10 @@ class WC_Interswitch_Gateway extends WC_Payment_Gateway {
             'orderId' => $order_id,
             'amount' => $order->get_total() * 100, // Convert to cents
             'dateOfPayment' => date('c'),
-            'redirectUrl' => home_url('/wc-api/wc_interswitch_gateway'),
+            // Set failureUrl and successUrl separately
+            'failureUrl' => $order->get_checkout_payment_url(),
+            'successUrl' => $order->get_checkout_order_received_url(),
+            'redirectUrl' => $order->get_checkout_payment_url(), // Default to payment URL
             'narration' => 'Order payment #' . $order_id,
             'expiryTime' => date('c', strtotime('+1 hour')),
             'customerId' => $order->get_customer_id(),
@@ -116,12 +126,6 @@ class WC_Interswitch_Gateway extends WC_Payment_Gateway {
     }
 
     public function is_available() {
-        // Check if the gateway is enabled
-        $is_available = ('yes' === $this->enabled);
-
-        // Log the availability status
-        error_log('Interswitch Gateway is available: ' . ($is_available ? 'Yes' : 'No'));
-
-        return $is_available;
+        return ('yes' === $this->enabled);
     }
 }
